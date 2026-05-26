@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clash for Windows (CFW) 汉化版下载 - 2026 稳定版及汉化补丁</title>
+    
+    <meta name="description" content="专为 Windows 用户打造的 Clash 客户端。提供 2026 稳定版下载、中文界面汉化教程、TUN 模式配置指南，助您在电脑端实现极速网络分流。">
+    <meta name="keywords" content="Clash for Windows, CFW下载, Clash中文版, Clash Windows汉化, 电脑版Clash。">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background: #0a0c10; color: #e5e7eb; font-family: 'Segoe UI', system-ui, sans-serif; }
+        .gradient-border { border: 1px solid; border-image: linear-gradient(to right, #3b82f6, #8b5cf6) 1; }
+        .clash-card { background: rgba(17, 24, 39, 0.8); backdrop-filter: blur(10px); border: 1px solid #1f2937; transition: 0.3s; }
+        .clash-card:hover { border-color: #3b82f6; transform: translateY(-5px); box-shadow: 0 10px 30px -10px rgba(59, 130, 246, 0.5); }
+        input, select { background: #111827 !important; border: 1px solid #374151 !important; color: white !important; }
+        .tab-active { border-bottom: 3px solid #3b82f6; color: #3b82f6; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- 导航 -->
+        <nav class="border-b border-gray-800 bg-gray-900/50 sticky top-0 z-50">
+            <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center rotate-12">
+                        <i class="fas fa-paper-plane text-white -rotate-12"></i>
+                    </div>
+                    <span class="text-2xl font-black tracking-tight text-white uppercase">Clash<span class="text-blue-500">Hub</span></span>
+                </div>
+                <div class="hidden md:flex gap-8 font-bold text-sm">
+                    <a href="#convert" class="hover:text-blue-400">在线转换</a>
+                    <a href="#download" class="hover:text-blue-400">下载中心</a>
+                    <a href="#docs" class="hover:text-blue-400">使用文档</a>
+                </div>
+                <button class="bg-blue-600 hover:bg-blue-500 px-5 py-2 rounded-lg font-bold text-sm">注册节点</button>
+            </div>
+        </nav>
+
+        <!-- Hero Section -->
+        <header class="py-20 text-center px-4 relative overflow-hidden">
+            <div class="absolute top-[-10%] left-[-10%] w-64 h-64 bg-blue-600/20 blur-[100px]"></div>
+            <h1 class="text-5xl md:text-7xl font-extrabold text-white mb-6">更简单的 <span class="text-blue-500 underline">Clash</span> 管理</h1>
+            <p class="max-w-2xl mx-auto text-gray-400 text-lg mb-10">一键转换您的 V2Ray/SS/Trojan 订阅至 Clash 格式。支持全平台客户端下载与最新规则同步。</p>
+            <div class="flex justify-center gap-4">
+                <a href="#convert" class="bg-white text-black px-8 py-3 rounded-xl font-bold hover:bg-gray-200 transition">立即转换</a>
+                <a href="#download" class="border border-gray-700 px-8 py-3 rounded-xl font-bold hover:bg-gray-800 transition">下载客户端</a>
+            </div>
+        </header>
+
+        <!-- 订阅转换器 (重点逻辑) -->
+        <section id="convert" class="max-w-4xl mx-auto px-6 py-20">
+            <div class="clash-card rounded-3xl p-8 md:p-12 shadow-2xl">
+                <h2 class="text-3xl font-bold mb-8 flex items-center gap-3">
+                    <i class="fas fa-magic text-blue-500"></i> 订阅转换引擎
+                </h2>
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-400 mb-2 uppercase">订阅链接 (每行一个)</label>
+                        <textarea v-model="subUrl" rows="4" class="w-full rounded-xl p-4 focus:ring-2 ring-blue-500 outline-none transition" placeholder="http://..."></textarea>
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-bold text-gray-400 mb-2 uppercase">生成类型</label>
+                            <select v-model="target" class="w-full rounded-xl p-4 outline-none">
+                                <option value="clash">Clash (推荐)</option>
+                                <option value="clashr">ClashR</option>
+                                <option value="surge">Surge</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-400 mb-2 uppercase">后端服务器</label>
+                            <select v-model="backend" class="w-full rounded-xl p-4 outline-none">
+                                <option value="api1">主线路 (负载均衡)</option>
+                                <option value="api2">备用线路 (高速)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div v-if="showResult" class="bg-black/50 p-6 rounded-2xl border border-blue-500/30 animate-pulse">
+                        <label class="block text-xs font-bold text-blue-400 mb-2">生成结果</label>
+                        <p class="break-all font-mono text-sm text-gray-300">{{ resultUrl }}</p>
+                    </div>
+                    <button @click="generateSub" class="w-full bg-blue-600 py-5 rounded-2xl font-black text-xl hover:bg-blue-500 shadow-lg shadow-blue-600/20 transition-all active:scale-[0.98]">
+                        {{ loading ? '生成中...' : '一键生成定制订阅' }}
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 客户端下载 -->
+        <section id="download" class="py-20 bg-gray-900/30">
+            <div class="max-w-7xl mx-auto px-6 text-center">
+                <h2 class="text-4xl font-bold mb-16 underline decoration-blue-600 underline-offset-8">下载中心</h2>
+                <div class="grid md:grid-cols-3 gap-8">
+                    <!-- Windows -->
+                    <div class="clash-card p-10 rounded-3xl">
+                        <i class="fab fa-windows text-5xl text-blue-400 mb-6"></i>
+                        <h3 class="text-2xl font-bold mb-4">Clash for Windows</h3>
+                        <p class="text-gray-400 mb-8 text-sm">功能最强大的图形化客户端，支持全局/分流模式切换。</p>
+                        <button class="w-full py-3 rounded-lg border border-blue-500 text-blue-500 font-bold hover:bg-blue-500 hover:text-white transition">立即下载 (v0.20.39)</button>
+                    </div>
+                    <!-- Android -->
+                    <div class="clash-card p-10 rounded-3xl">
+                        <i class="fab fa-android text-5xl text-green-400 mb-6"></i>
+                        <h3 class="text-2xl font-bold mb-4">Clash for Android</h3>
+                        <p class="text-gray-400 mb-8 text-sm">移动端首选，完美支持分流与各类协议。</p>
+                        <button class="w-full py-3 rounded-lg border border-green-500 text-green-500 font-bold hover:bg-green-500 hover:text-white transition">立即下载 (Premium)</button>
+                    </div>
+                    <!-- macOS -->
+                    <div class="clash-card p-10 rounded-3xl">
+                        <i class="fab fa-apple text-5xl text-gray-100 mb-6"></i>
+                        <h3 class="text-2xl font-bold mb-4">ClashX / Pro</h3>
+                        <p class="text-gray-400 mb-8 text-sm">专为 macOS 打造，极致丝滑的菜单栏操作体验。</p>
+                        <button class="w-full py-3 rounded-lg border border-gray-100 text-gray-100 font-bold hover:bg-white hover:text-black transition">立即下载 (v1.96.2)</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 底部 -->
+        <footer class="py-10 border-t border-gray-800 text-center text-gray-500 text-sm">
+            <p>© 2026 ClashHub. 本站仅供技术交流，请遵守当地法律法规。</p>
+        </footer>
+    </div>
+
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                subUrl: '',
+                target: 'clash',
+                backend: 'api1',
+                resultUrl: '',
+                showResult: false,
+                loading: false
+            },
+            methods: {
+                generateSub() {
+                    if(!this.subUrl) return alert('请输入原订阅链接');
+                    this.loading = true;
+                    // 模拟 API 请求时延
+                    setTimeout(() => {
+                        const encodedUrl = btoa(this.subUrl);
+                        this.resultUrl = `https://api.clashhub.com/sub?target=${this.target}&url=${encodedUrl}&emoji=true&list=true&udp=true`;
+                        this.showResult = true;
+                        this.loading = false;
+                        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                    }, 800);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
